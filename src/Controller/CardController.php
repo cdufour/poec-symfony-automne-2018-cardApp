@@ -75,9 +75,19 @@ class CardController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+          $file = $form->get('image')->getData();
+          $filename = $file->getClientOriginalName();
 
-            return $this->redirectToRoute('card_index', ['id' => $card->getId()]);
+          try {
+            $file->move($this->getParameter('cardfolder'), $filename);
+          } catch(FileException $e) {
+            echo 'ERROR';
+          }
+
+          $card->setImage($filename);
+          $this->getDoctrine()->getManager()->flush();
+
+          return $this->redirectToRoute('card_index', ['id' => $card->getId()]);
         }
 
         return $this->render('card/edit.html.twig', [
